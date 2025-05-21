@@ -34,6 +34,10 @@ public class FallDamageHandler : MonoBehaviour
     // 충돌 시 낙하 속도가 임계값보다 크면 데미지 적용
     void OnCollisionEnter(Collision collision)
     {
+        // 점프대면 낙하 데미지 무시
+        if (collision.gameObject.CompareTag("JumpPad"))
+            return;
+
         if (lastYVelocity < fallThreshold && damageReceiver != null)
         {
             float damage = Mathf.Abs(lastYVelocity) * damageMultiplier;
