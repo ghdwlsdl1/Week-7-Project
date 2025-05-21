@@ -5,23 +5,20 @@ using UnityEngine.InputSystem;
 public class PlayerController : MonoBehaviour
 {
     [Header("이동 및 점프")]
-    public float moveSpeed = 5f;
-    public float jumpPower = 80f;
-    public LayerMask groundLayerMask;
-    private Vector2 curMovementInput;
+    public float moveSpeed = 5f;           // 이동 속도
+    public float jumpPower = 80f;          // 점프 힘
+    public LayerMask groundLayerMask;      // 바닥 판정용 레이어
+    private Vector2 curMovementInput;      // 현재 입력 방향
 
     [Header("마우스 회전")]
-    public Transform cameraContainer;
-    public float minXLook = -85f;
-    public float maxXLook = 85f;
-    private float camCurXRot;
-    public float lookSensitivity = 0.1f;
-    private Vector2 mouseDelta;
+    public Transform cameraContainer;      // 카메라 회전 기준
+    public float minXLook = -85f;          // 아래로 회전 제한
+    public float maxXLook = 85f;           // 위로 회전 제한
+    private float camCurXRot;              // 현재 X축 회전값
+    public float lookSensitivity = 0.1f;   // 마우스 민감도
+    private Vector2 mouseDelta;            // 마우스 입력값
 
-
-
-    private Rigidbody _rigidbody;
-
+    private Rigidbody _rigidbody;          // 물리 이동용 리짓드바디
 
     private void Awake()
     {
@@ -30,63 +27,70 @@ public class PlayerController : MonoBehaviour
 
     void FixedUpdate()
     {
-        Move();
+        Move(); // 물리 이동 처리
     }
 
     private void LateUpdate()
     {
-        CameraLook();
+        CameraLook(); // 마우스 회전 처리
     }
 
     //---------------------------------------------------------------------
 
+    // 이동 입력 처리
     public void OnMove(InputAction.CallbackContext context)
     {
         if (context.phase == InputActionPhase.Performed)
             curMovementInput = context.ReadValue<Vector2>();
-
         else if (context.phase == InputActionPhase.Canceled)
             curMovementInput = Vector2.zero;
     }
+
+    // 실제 이동 처리
     void Move()
     {
         Vector3 dir = transform.forward * curMovementInput.y +
                       transform.right * curMovementInput.x;
 
         dir *= moveSpeed;
-        dir.y = _rigidbody.velocity.y;
+        dir.y = _rigidbody.velocity.y; // 기존 y속도 유지 (중력 고려)
 
         _rigidbody.velocity = dir;
     }
 
     //---------------------------------------------------------------------
 
+    // 마우스 입력 처리
     public void OnLook(InputAction.CallbackContext context)
     {
         mouseDelta = context.ReadValue<Vector2>();
     }
 
+    // 카메라 회전 처리
     void CameraLook()
     {
         camCurXRot += mouseDelta.y * lookSensitivity;
         camCurXRot = Mathf.Clamp(camCurXRot, minXLook, maxXLook);
-        cameraContainer.localEulerAngles = new Vector3(-camCurXRot ,0,0 );
+        cameraContainer.localEulerAngles = new Vector3(-camCurXRot ,0,0);
 
         transform.eulerAngles += new Vector3(0, mouseDelta.x * lookSensitivity, 0);
     }
 
     //---------------------------------------------------------------------
+
+    // 점프 입력 처리
     public void OnJump(InputAction.CallbackContext context)
     {
         if (context.phase == InputActionPhase.Started && IsGrounded())
             _rigidbody.AddForce(Vector2.up * jumpPower , ForceMode.Impulse);
     }
 
+    // 바닥 체크 (4방향 Ray로 바닥 판정)
     bool IsGrounded()
     {
         Ray[] rays = new Ray[4]
         {
-            new Ray(transform.position + (transform.forward * 0.2f) + (transform.up * 0.01f), Vector3.down ),
+            new Ray(transform.position + (transform.forward * 0.2f) + (transform.up * 0.01f), Vector3.down),
             new Ray(transform.position + (-transform.forward * 0.2f) + (transform.up * 0.01f), Vector3.down),
             new Ray(transform.position + (transform.right * 0.2f) + (transform.up * 0.01f), Vector3.down),
             new Ray(transform.position + (-transform.right * 0.2f) + (transform.up * 0.01f), Vector3.down)
@@ -101,5 +105,4 @@ public class PlayerController : MonoBehaviour
         }
         return false;
     }
-
 }
