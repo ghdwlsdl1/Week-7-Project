@@ -6,7 +6,9 @@ public class PlayerController : MonoBehaviour
 {
     [Header("이동 및 점프")]
     public float moveSpeed = 5f;           // 이동 속도
+    public float baseMoveSpeed;            // 이동 속도 저장
     public float jumpPower = 80f;          // 점프 힘
+    public float baseJumpPower;            // 점프 힘 저장
     public LayerMask groundLayerMask;      // 바닥 판정용 레이어
     private Vector2 curMovementInput;      // 현재 입력 방향
 
@@ -22,6 +24,8 @@ public class PlayerController : MonoBehaviour
     public bool canLook = true;            // 인벤토리 작동여부
     private void Awake()
     {
+        baseMoveSpeed = moveSpeed;
+        baseJumpPower = jumpPower;
         _rigidbody = GetComponent<Rigidbody>();
     }
 

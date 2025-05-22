@@ -17,6 +17,9 @@ public class PlayerCondition : MonoBehaviour, IDamagalbe
     public Condition stamina;       // 스태미너 상태
     public Condition health;        // 체력 상태
 
+    private Coroutine speedCoroutine;
+    private Coroutine jumpCoroutine;
+
     private Coroutine recoveryCoroutine;
     // 허기 상태 수치 외부 접근용
     public float GetExpendablesMax() => expendables.maxValue;
@@ -90,6 +93,56 @@ public class PlayerCondition : MonoBehaviour, IDamagalbe
     public void Die()
     {
         Debug.Log("사망");
+    }
+
+    private IEnumerator TempSpeedBoost(float multiplier, float duration)
+    {
+        var controller = CharacterManager.Instance.Player.controller;
+
+        controller.moveSpeed = controller.baseMoveSpeed * multiplier;
+        yield return new WaitForSeconds(duration);
+        controller.moveSpeed = controller.baseMoveSpeed;
+    }
+
+    private IEnumerator TempJumpBoost(float multiplier, float duration)
+    {
+        var controller = CharacterManager.Instance.Player.controller;
+
+        controller.jumpPower = controller.baseJumpPower * multiplier;
+        yield return new WaitForSeconds(duration);
+        controller.jumpPower = controller.baseJumpPower;
+    }
+
+    public void ApplyItemEffect(ItemData item)
+    {
+        switch (item.effectType)
+        {
+            case ItemEffectType.Heal:
+                Heal(item.effectValue);
+                break;
+
+            case ItemEffectType.Stamina:
+                stamina.Add(item.effectValue);
+                break;
+
+            case ItemEffectType.SpeedBoost:
+                if (speedCoroutine != null) StopCoroutine(speedCoroutine);
+                speedCoroutine = StartCoroutine(TempSpeedBoost(2f, item.duration));
+                break;
+
+            case ItemEffectType.JumpBoost:
+                if (jumpCoroutine != null) StopCoroutine(jumpCoroutine);
+                jumpCoroutine = StartCoroutine(TempJumpBoost(2f, item.duration));
+                break;
+
+            case ItemEffectType.SpeedJumpBoost:
+                if (speedCoroutine != null) StopCoroutine(speedCoroutine);
+                speedCoroutine = StartCoroutine(TempSpeedBoost(2f, item.duration));
+
+                if (jumpCoroutine != null) StopCoroutine(jumpCoroutine);
+                jumpCoroutine = StartCoroutine(TempJumpBoost(2f, item.duration));
+                break;
+        }
     }
 }
 

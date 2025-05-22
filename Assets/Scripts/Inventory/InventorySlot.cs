@@ -73,13 +73,13 @@ public class InventorySlot : MonoBehaviour
         if (item.type == ItemType.Consumable && item.effectValue > 0f)
         {
             player.RecoverExpendables(item.effectValue, item.duration);
+            player.ApplyItemEffect(item);
         }
 
         count--;
         if (count <= 0)
             Clear();
 
-        // 아이템 정보 패널 초기화
         InventoryUI.Instance.UpdateInfoPanel(null);
     }
 

@@ -5,6 +5,15 @@ public enum ItemType
     Equipment,  // 장비 아이템
     Resource    // 자원 아이템
 }
+public enum ItemEffectType
+{
+    None,
+    Heal,          // 체력 회복
+    Stamina,       // 스태미너 회복
+    SpeedBoost,    // 이동 속도 증가
+    JumpBoost,     // 점프력 증가
+    SpeedJumpBoost // 이동 + 점프력 증가
+}
 
 [CreateAssetMenu(fileName = "Item", menuName = "Item/New Item")]
 public class ItemData : ScriptableObject
@@ -24,4 +33,5 @@ public class ItemData : ScriptableObject
     [Header("사용 효과")]
     public float effectValue;      // 효과 값 (예: 체력 회복량)
     public float duration;         // 지속 시간 (0이면 즉시 효과)
+    public ItemEffectType effectType; // 아이템 효과 타입
 }
