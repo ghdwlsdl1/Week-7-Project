@@ -19,7 +19,7 @@ public class PlayerController : MonoBehaviour
     private Vector2 mouseDelta;            // 마우스 입력값
 
     private Rigidbody _rigidbody;          // 물리 이동용 리짓드바디
-
+    public bool canLook = true;            // 인벤토리 작동여부
     private void Awake()
     {
         _rigidbody = GetComponent<Rigidbody>();
@@ -69,6 +69,8 @@ public class PlayerController : MonoBehaviour
     // 카메라 회전 처리
     void CameraLook()
     {
+        if (!canLook) return;
+
         camCurXRot += mouseDelta.y * lookSensitivity;
         camCurXRot = Mathf.Clamp(camCurXRot, minXLook, maxXLook);
         cameraContainer.localEulerAngles = new Vector3(-camCurXRot ,0,0);
@@ -104,5 +106,14 @@ public class PlayerController : MonoBehaviour
             }
         }
         return false;
+    }
+    //---------------------------------------------------------------------
+    // 인벤토리 입력 처리
+    public void OnInventory(InputAction.CallbackContext context)
+    {
+        if (context.phase == InputActionPhase.Started)
+        {
+            InventoryUI.Instance.ToggleInventory();
+        }
     }
 }

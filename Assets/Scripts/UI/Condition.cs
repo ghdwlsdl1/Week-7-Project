@@ -13,6 +13,7 @@ public class Condition : MonoBehaviour
     {
         // 시작 시 현재 값을 초기값으로 설정
         curValue = startValue;
+        Debug.Log($"[Condition.Start] {gameObject.name} 초기 curValue: {curValue}");
     }
 
     void Update()

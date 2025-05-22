@@ -1,9 +1,9 @@
 using UnityEngine;
 public enum ItemType
 {
-    Consumable,
-    Equipment,
-    Resource
+    Consumable, // 소비 아이템
+    Equipment,  // 장비 아이템
+    Resource    // 자원 아이템
 }
 
 [CreateAssetMenu(fileName = "Item", menuName = "Item/New Item")]
@@ -15,6 +15,7 @@ public class ItemData : ScriptableObject
     public string description;     // 아이템 설명
     public Sprite icon;            // UI 아이콘
     public ItemType type;          // 아이템 타입
+    public GameObject dropPrefab;  // 드랍 아이템
 
     [Header("스택 관련")]
     public bool canStack = false;  // 중첩 가능 여부

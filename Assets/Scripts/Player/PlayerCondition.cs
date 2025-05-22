@@ -1,7 +1,6 @@
 using System;
 using UnityEngine;
-using System;
-using UnityEngine;
+using System.Collections;
 
 // 데미지를 받을 수 있는 객체가 구현해야 할 인터페이스
 public interface IDamagalbe
@@ -14,10 +13,14 @@ public class PlayerCondition : MonoBehaviour, IDamagalbe
 {
     public UICondition uiCondition; // 상태 정보를 담은 UI 연결
 
-    // UICondition에서 각각의 상태 가져오기
-    Condition expendables { get { return uiCondition.expendables; } }
-    Condition stamina     { get { return uiCondition.stamina; } }
-    Condition health      { get { return uiCondition.health; } }
+    public Condition expendables;   // 허기 수치 상태
+    public Condition stamina;       // 스태미너 상태
+    public Condition health;        // 체력 상태
+
+    private Coroutine recoveryCoroutine;
+    // 허기 상태 수치 외부 접근용
+    public float GetExpendablesMax() => expendables.maxValue;
+    public float GetExpendablesValue() => expendables.curValue;
 
     // 데미지 발생 시 호출되는 이벤트 (DamageIndicator 등에서 구독)
     public event Action<int> onTakeDamage;
@@ -29,19 +32,45 @@ public class PlayerCondition : MonoBehaviour, IDamagalbe
         stamina.Add(stamina.passiveValue * Time.deltaTime);
 
         // 허기가 0이 되면 UI 비활성화
-        if (expendables.curValue == 0f)
+        if (expendables.curValue <= 0f)
         {
             if (uiCondition.expendablesUI.activeSelf)
-            {
                 uiCondition.expendablesUI.SetActive(false);
-            }
+        }
+        // 허기가 0 초과면 UI 활성화
+        else
+        {
+            if (!uiCondition.expendablesUI.activeSelf)
+                uiCondition.expendablesUI.SetActive(true);
         }
 
         // 체력이 0이 되면 사망 처리
-        if (health.curValue == 0f)
-        {
+        if (health.curValue <= 0f)
             Die();
-        }
+    }
+
+    // 소모품 효과: 일정량 허기 회복 및 지속시간 동안 회복 제한 처리
+    public void RecoverExpendables(float amount, float duration)
+    {
+        if (expendables.curValue + amount > expendables.maxValue)
+            return;
+
+        expendables.Add(amount);
+
+        if (recoveryCoroutine != null)
+            StopCoroutine(recoveryCoroutine);
+
+        recoveryCoroutine = StartCoroutine(RecoverRoutine(duration));
+
+        if (!uiCondition.expendablesUI.activeSelf)
+            uiCondition.expendablesUI.SetActive(true);
+    }
+
+    // 허기 회복 지속시간 처리 (현재는 단순 대기)
+    private IEnumerator RecoverRoutine(float duration)
+    {
+        yield return new WaitForSeconds(duration);
+        recoveryCoroutine = null;
     }
 
     // 체력 회복
@@ -50,23 +79,17 @@ public class PlayerCondition : MonoBehaviour, IDamagalbe
         health.Add(amount);
     }
 
-    // 소모품 효과
-    public void Eat(float amount)
+    // 데미지 처리 (인터페이스 구현)
+    public void TakePhysicaIDamage(int damage)
     {
-        expendables.Add(amount);
+        health.Subtract(damage);          // 체력 감소
+        onTakeDamage?.Invoke(damage);     // 이벤트로 피격 반응 전달
     }
 
     // 사망 처리
     public void Die()
     {
         Debug.Log("사망");
-    }
-
-    // 데미지 처리 (인터페이스 구현)
-    public void TakePhysicaIDamage(int damage)
-    {
-        health.Subtract(damage);          // 체력 감소
-        onTakeDamage?.Invoke(damage);     // 이벤트로 피격 반응 전달
     }
 }
 
