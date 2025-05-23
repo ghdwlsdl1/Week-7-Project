@@ -53,9 +53,6 @@ public class InventoryUI : MonoBehaviour
 
         Cursor.lockState = isOpen ? CursorLockMode.None : CursorLockMode.Locked;
         Cursor.visible = isOpen;
-
-        // 인벤토리 열릴 때 시점 고정
-        CharacterManager.Instance.Player.controller.canLook = !isOpen;
     }
 
     // 아이템 추가 처리

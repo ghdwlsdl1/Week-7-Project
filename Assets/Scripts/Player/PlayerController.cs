@@ -16,16 +16,13 @@ public class PlayerController : MonoBehaviour
     private bool isRunning;                // 달리는 중
     public float currentSpeedBoost = 1f;   // 음식 효과 배율
 
-    [Header("마우스 회전")]
-    public Transform cameraContainer;      // 카메라 회전 기준
-    public float minXLook = -85f;          // 아래로 회전 제한
-    public float maxXLook = 85f;           // 위로 회전 제한
-    private float camCurXRot;              // 현재 X축 회전값
-    public float lookSensitivity = 0.1f;   // 마우스 민감도
-    private Vector2 mouseDelta;            // 마우스 입력값
+
+    private bool isInventoryOpen = false;
+    public bool canLook => !isInventoryOpen;
+
+    private Vector2 mouseDelta;
 
     private Rigidbody _rigidbody;          // 물리 이동용 리지드바디
-    public bool canLook = true;            // 인벤토리 작동여부
     private void Awake()
     {
         baseMoveSpeed = moveSpeed;
@@ -49,10 +46,6 @@ public class PlayerController : MonoBehaviour
 
         Move();
     }
-    private void LateUpdate()
-    {
-        CameraLook(); // 마우스 회전 처리
-    }
 
     //---------------------------------------------------------------------
 
@@ -64,24 +57,53 @@ public class PlayerController : MonoBehaviour
         else if (context.phase == InputActionPhase.Canceled)
             curMovementInput = Vector2.zero;
     }
-
-    // 실제 이동 처리
+    // 이동처리
     void Move()
     {
-        Vector3 dir = transform.forward * curMovementInput.y +
-                      transform.right * curMovementInput.x;
+        if (CharacterManager.Instance.Player.viewSwitcher.IsThirdPerson())
+            MoveThirdPerson();
+        else
+            MoveFirstPerson();
+    }
+    // 3인칭
+    void MoveThirdPerson()
+    {
+        Transform cam = CharacterManager.Instance.Player.viewSwitcher.mainCameraTransform;
+        Vector3 camForward = cam.forward;
+        Vector3 camRight = cam.right;
 
-        float speedMultiplier = 1f;
+        camForward.y = 0;
+        camRight.y = 0;
 
-        if (isRunning)
-            speedMultiplier *= runMultiplier;
+        camForward.Normalize();
+        camRight.Normalize();
 
-        speedMultiplier *= currentSpeedBoost; // 음식 효과 배율
+        Vector3 dir = camForward * curMovementInput.y + camRight * curMovementInput.x;
+
+        float speedMultiplier = isRunning ? runMultiplier : 1f;
+        speedMultiplier *= currentSpeedBoost;
 
         dir *= moveSpeed * speedMultiplier;
-        dir.y = _rigidbody.velocity.y; // 기존 y속도 유지 (중력 유지)
+        dir.y = _rigidbody.velocity.y;
 
         _rigidbody.velocity = dir;
+
+        if (dir != Vector3.zero)
+            transform.forward = new Vector3(dir.x, 0, dir.z);
+    }
+    // 1인칭
+    void MoveFirstPerson()
+    {
+        Vector3 dir = transform.forward * curMovementInput.y + transform.right * curMovementInput.x;
+
+        float speedMultiplier = isRunning ? runMultiplier : 1f;
+        speedMultiplier *= currentSpeedBoost;
+
+        dir *= moveSpeed * speedMultiplier;
+        dir.y = _rigidbody.velocity.y;
+
+        _rigidbody.velocity = dir;
+
     }
 
     //---------------------------------------------------------------------
@@ -92,16 +114,9 @@ public class PlayerController : MonoBehaviour
         mouseDelta = context.ReadValue<Vector2>();
     }
 
-    // 카메라 회전 처리
-    void CameraLook()
+    public Vector2 GetMouseDelta()
     {
-        if (!canLook) return;
-
-        camCurXRot += mouseDelta.y * lookSensitivity;
-        camCurXRot = Mathf.Clamp(camCurXRot, minXLook, maxXLook);
-        cameraContainer.localEulerAngles = new Vector3(-camCurXRot ,0,0);
-
-        transform.eulerAngles += new Vector3(0, mouseDelta.x * lookSensitivity, 0);
+        return mouseDelta;
     }
 
     //---------------------------------------------------------------------
@@ -140,10 +155,12 @@ public class PlayerController : MonoBehaviour
         if (context.phase == InputActionPhase.Started)
         {
             InventoryUI.Instance.ToggleInventory();
+            isInventoryOpen = !isInventoryOpen;
         }
     }
 
     //---------------------------------------------------------------------
+    // 달리기 입력 처리
     public void OnRun(InputAction.CallbackContext context)
     {
         var condition = CharacterManager.Instance.Player.condition;
@@ -158,6 +175,15 @@ public class PlayerController : MonoBehaviour
         {
             isRunning = false;
 
+        }
+    }
+    //---------------------------------------------------------------------
+    // 시점전환 입력 처리
+    public void OnChangeView(InputAction.CallbackContext context)
+    {
+        if (context.performed)
+        {
+            CharacterManager.Instance.Player.viewSwitcher.SwitchView();
         }
     }
 }
