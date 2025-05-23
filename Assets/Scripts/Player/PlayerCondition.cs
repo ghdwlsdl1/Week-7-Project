@@ -99,9 +99,11 @@ public class PlayerCondition : MonoBehaviour, IDamagalbe
     {
         var controller = CharacterManager.Instance.Player.controller;
 
-        controller.moveSpeed = controller.baseMoveSpeed * multiplier;
+        controller.currentSpeedBoost = multiplier;
+
         yield return new WaitForSeconds(duration);
-        controller.moveSpeed = controller.baseMoveSpeed;
+
+        controller.currentSpeedBoost = 1f;
     }
 
     private IEnumerator TempJumpBoost(float multiplier, float duration)

@@ -16,10 +16,11 @@ MonoBehaviour:
   description: "\"\uAC00\uAC8C \uAC00\uC11C \uC6B0\uC720 \uD55C \uD1B5\uB9CC \uC0AC\uC640.
     \uD639\uC2DC \uC544\uBCF4\uCE74\uB3C4 \uC788\uC73C\uBA74 6\uAC1C \uC0AC\uC624\uACE0.\"\r\n\"\uC544\uBCF4\uCE74\uB3C4
     \uC788\uC5C8\uC5B4.\""
-  icon: {fileID: 0}
+  icon: {fileID: 21300000, guid: 8091782200fff484ea73fe10c132b006, type: 3}
   type: 0
-  dropPrefab: {fileID: 0}
+  dropPrefab: {fileID: 6177310916602692201, guid: 76a184f2a39d28b4fa58613275e59905, type: 3}
   canStack: 0
   maxStack: 1
   effectValue: 200
-  duration: 5
+  duration: 0
+  effectType: 2

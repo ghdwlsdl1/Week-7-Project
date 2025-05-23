@@ -14,10 +14,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   itemName: "\uC0AC\uACFC"
   description: "\uB098\uC05C\uC0AC\uACFC"
-  icon: {fileID: 0}
+  icon: {fileID: 21300000, guid: 56481d1605acd61468f3446366bec970, type: 3}
   type: 0
-  dropPrefab: {fileID: 0}
+  dropPrefab: {fileID: 8558144111674751676, guid: 03b26678e49c981449f585976fa47555, type: 3}
   canStack: 0
   maxStack: 1
   effectValue: 100
-  duration: 5
+  duration: 0
+  effectType: 1

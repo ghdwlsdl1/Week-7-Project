@@ -11,6 +11,10 @@ public class PlayerController : MonoBehaviour
     public float baseJumpPower;            // 점프 힘 저장
     public LayerMask groundLayerMask;      // 바닥 판정용 레이어
     private Vector2 curMovementInput;      // 현재 입력 방향
+    private float runMultiplier = 1.5f;    // 달리기 배율
+    public float staminaRunCost = 20f;    // 초당 소모량
+    private bool isRunning;                // 달리는 중
+    public float currentSpeedBoost = 1f;   // 음식 효과 배율
 
     [Header("마우스 회전")]
     public Transform cameraContainer;      // 카메라 회전 기준
@@ -20,7 +24,7 @@ public class PlayerController : MonoBehaviour
     public float lookSensitivity = 0.1f;   // 마우스 민감도
     private Vector2 mouseDelta;            // 마우스 입력값
 
-    private Rigidbody _rigidbody;          // 물리 이동용 리짓드바디
+    private Rigidbody _rigidbody;          // 물리 이동용 리지드바디
     public bool canLook = true;            // 인벤토리 작동여부
     private void Awake()
     {
@@ -31,9 +35,20 @@ public class PlayerController : MonoBehaviour
 
     void FixedUpdate()
     {
-        Move(); // 물리 이동 처리
-    }
+        var stamina = CharacterManager.Instance.Player.condition.stamina;
 
+        if (isRunning)
+        {
+            stamina.Subtract(staminaRunCost * Time.fixedDeltaTime);
+
+            if (stamina.curValue <= 0f)
+            {
+                isRunning = false;
+            }
+        }
+
+        Move();
+    }
     private void LateUpdate()
     {
         CameraLook(); // 마우스 회전 처리
@@ -56,8 +71,15 @@ public class PlayerController : MonoBehaviour
         Vector3 dir = transform.forward * curMovementInput.y +
                       transform.right * curMovementInput.x;
 
-        dir *= moveSpeed;
-        dir.y = _rigidbody.velocity.y; // 기존 y속도 유지 (중력 고려)
+        float speedMultiplier = 1f;
+
+        if (isRunning)
+            speedMultiplier *= runMultiplier;
+
+        speedMultiplier *= currentSpeedBoost; // 음식 효과 배율
+
+        dir *= moveSpeed * speedMultiplier;
+        dir.y = _rigidbody.velocity.y; // 기존 y속도 유지 (중력 유지)
 
         _rigidbody.velocity = dir;
     }
@@ -118,6 +140,24 @@ public class PlayerController : MonoBehaviour
         if (context.phase == InputActionPhase.Started)
         {
             InventoryUI.Instance.ToggleInventory();
+        }
+    }
+
+    //---------------------------------------------------------------------
+    public void OnRun(InputAction.CallbackContext context)
+    {
+        var condition = CharacterManager.Instance.Player.condition;
+        float currentStamina = condition.stamina.curValue;
+
+        if (context.phase == InputActionPhase.Performed && currentStamina >= 20f)
+        {
+            isRunning = true;
+
+        }
+        else if (context.phase == InputActionPhase.Canceled || currentStamina <= 0f)
+        {
+            isRunning = false;
+
         }
     }
 }
